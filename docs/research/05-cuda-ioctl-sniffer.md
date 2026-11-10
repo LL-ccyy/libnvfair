@@ -15,7 +15,7 @@
 ### 2.1 观测端(sniff.cc,600 行)
 
 - LD_PRELOAD 导出 `ioctl`/`mmap`/`munmap` 等符号,`dlsym(RTLD_NEXT,...)` 取真实实现——与 libnvfair 同一注入手法;
-- 直接 include open-gpu-kernel-modules 头:`nv-ioctl.h`、`nv-ioctl-numbers.h`、`nv_escape.h`、`nvos.h`、`ctrl2080.h`、`ctrla06c.h`、`g_allclasses.h` 等(sniff.cc:15-39)——即 04 文档所述的官方协议源;
+- 直接 include open-gpu-kernel-modules 头:`nv-ioctl.h`、`nv-ioctl-numbers.h`、`nv_escape.h`、`nvos.h`、`ctrl2080.h`、`ctrla06c.h`、`g_allclasses.h` 等(sniff.cc:15-39)——即 04-open-gpu-kernel-modules.md 所述的官方协议源;
 - **pstruct(pstruct/pstruct.py + include.cc)**:一个头文件解析器,扫描 ogkm 头生成 `out/printer.h`——把每个 ioctl 参数结构转成"按字段名+类型"的打印函数。这是它最独特的资产:**不用手写每个结构的 dump 代码,协议定义自动变成可读的调用追踪**;
 - mmap 拦截 + SIGSEGV 陷阱页:对 GPU MMIO/命令队列映射页先映射假页,写触发 segfault 后在 handler 里反汇编 RIP 处指令识别是哪种 store,转写真实页并 dump 命令 buffer(sniff.cc:55-130)。这让它能观测"不写 ioctl、直接写寄存器"的路径(GPFIFO push)。
 
@@ -27,8 +27,8 @@
 
 1. **路线可行性背书**:geohot 用 ~600 行证明 ioctl 层是理解与控制 NVIDIA 用户态栈的**充分**层次——libcuda 所做的一切最终都可表示为有限 RM ioctl 序列。libnvfair 在同层次做"限制"而非"重放",复杂度低一个量级。
 2. **白嫖的调试工具**:`sniff.so` 几乎可以直接拿来用——开发 libnvfair 时用它 dump 真实 CUDA 应用的 ioctl 流,回答"cuMemAlloc 实际走哪个 NVOS32 子功能、flags 是什么、哪个驱动版本引入了新路径",替代 ioctl-controller 式的"6 组 flags 硬编码 + 手工试凑"。
-3. **pstruct 的方法论**:协议结构 → 自动生成打印代码。libnvfair 的调试/审计模式(03 文档 M3)应采用同一思路:从 ogkm 头生成 dump 代码,而不是手写。
-4. **给出拦截清单的实验验证手段**:03 文档的风险项"分配路径不止 HEAP_CONTROL 一类",可以用 sniff.so 对 PyTorch/真实工作负载跑一遍得到经验性全集,再决定白名单。
+3. **pstruct 的方法论**:协议结构 → 自动生成打印代码。libnvfair 的调试/审计模式(dev/design.md M3)应采用同一思路:从 ogkm 头生成 dump 代码,而不是手写。
+4. **给出拦截清单的实验验证手段**:dev/design.md 风险项"分配路径不止 HEAP_CONTROL 一类",可以用 sniff.so 对 PyTorch/真实工作负载跑一遍得到经验性全集,再决定白名单。
 5. **mmap 写路径的警示**:命令提交(GPFIFO doorbell)不走 ioctl 走 MMIO 直写——提醒 libnvfair:ioctl 层能管住**资源分配**,管不住**命令流**;这再次印证一期只做显存限额、算力方案待评估的边界设定。
 
 ## 4. 使用建议

@@ -36,7 +36,7 @@ NVIDIA 自 R515 起开源的内核驱动部分(GSP 固件仍为闭源 blob)。�
 - 以 git submodule 或 `third_party/open-gpu-kernel-modules`(pin commit `6dd092d`)形式引入**头文件**,不进编译产物;
 - `src/rm/rm_defs.h` 只做一件事:include 上述官方头 + 少量本项目自己的常量,不重复定义;
 - 构建系统设 `OGKM_DIR` 变量单点声明 include 路径,避免多处写死;
-- 升级 pin 时跑一遍 ABI 兼容测试(见 03 文档 M3),而不是在代码里 `strstr(driver_version)`。
+- 升级 pin 时跑一遍 ABI 兼容测试(见 dev/design.md M3),而不是在代码里 `strstr(driver_version)`。
 
 ## 5. 风险与注意
 

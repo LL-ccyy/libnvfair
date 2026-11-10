@@ -1,6 +1,7 @@
 # HAMi 设计文档(调研)
 
 > 来源:HAMi 主仓库(Project-HAMi/HAMi)+ HAMi-core 劫持库仓库(Project-HAMi/HAMi-core),2026-11 master/main 快照。
+> 谱系:HAMi-core 衍生自 tkestack/vcuda-controller(见 01-vcuda-controller.md)。
 
 ## 1. 定位与整体架构
 
@@ -83,7 +84,7 @@ HAMi-core **不 hook libc 的 ioctl**,而是在动态链接层拦截 CUDA 驱动
 
 ## 3. 与 TKEStack vcuda-controller 的关系
 
-HAMi-core 衍生自 TKEStack 的 vcuda-controller,主要区别(CHANGELOG 及代码观察):
+HAMi-core 衍生自 TKEStack 的 vcuda-controller(谱系详情见 01-vcuda-controller.md),主要区别(CHANGELOG 及代码观察):
 
 - 记账从"每次向驱动 ioctl 查询"改为"进程内原子记账 + 共享内存 + NVML 周期校准",消除热路径上的 ioctl 风暴;
 - 适配 CUDA 11.3+/12.x/13.x 的新分配 API(cuMemAllocAsync、mempool、cuGetProcAddress);
@@ -122,5 +123,5 @@ HAMi-core 衍生自 TKEStack 的 vcuda-controller,主要区别(CHANGELOG 及代�
 ## 6. 对 libnvfair 的启示
 
 - hook 点选择:HAMi 选择 CUDA API 层而非 ioctl 层,换来的是**驱动兼容性**(不用理解 RM ioctl 参数结构)和**记账精度**(应用层视角的分配与释放天然成对)。代价是要维护一张大符号表,并跟随 CUDA 新 API 演进。
-- ioctl 层 hook(见 02 文档)的代价则是:要自己解析 `NV_ESC_*` 命令码与参数结构,驱动版本差异大,且分配记账只能靠反向查询驱动,热路径昂贵。
+- ioctl 层 hook(见 03-ioctl-controller.md)的代价则是:要自己解析 `NV_ESC_*` 命令码与参数结构,驱动版本差异大,且分配记账只能靠反向查询驱动,热路径昂贵。
 - 两条路线的公共底座是一致的:LD_PRELOAD 注入、共享内存记账、NVML 监控校准、环境变量/文件配置通道。

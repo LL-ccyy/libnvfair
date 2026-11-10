@@ -1,7 +1,7 @@
 # libnvfair 设计文档
 
 > 状态:草案 v0.1(待评审)
-> 参考:`docs/01-hami-design.md`(HAMi)、`docs/02-ioctl-controller-design.md`(ioctl-controller 闭源原型调研)、`docs/04-open-gpu-kernel-modules.md`(RM ioctl 官方协议源)、`docs/05-cuda-ioctl-sniffer.md`(ioctl 路线可行性验证 + 观测工具)
+> 参考:调研文档见 `docs/research/`——[01-vcuda-controller.md](../research/01-vcuda-controller.md)(共同祖先原型)、[02-hami.md](../research/02-hami.md)(HAMi)、[03-ioctl-controller.md](../research/03-ioctl-controller.md)(ioctl 路线闭源原型)、[04-open-gpu-kernel-modules.md](../research/04-open-gpu-kernel-modules.md)(RM ioctl 官方协议源)、[05-cuda-ioctl-sniffer.md](../research/05-cuda-ioctl-sniffer.md)(ioctl 路线可行性验证 + 观测工具)
 
 ## 1. 定位与目标
 
@@ -11,7 +11,7 @@ libnvfair 是一个 **LD_PRELOAD 动态劫持库**:hook libc 的 `ioctl()` 符�
 - **算力限额**(二期):限制进程 SM 时间片/利用率;
 - 面向场景:不改动应用、不改动驱动、不依赖 K8s(可独立使用,也可被上层资源管理器集成)。
 
-与 ioctl-controller(闭源原型,见 02 文档)的关系:同一技术路线,但目标是**重写一个可维护的实现**,不是修补。
+与 ioctl-controller(闭源原型,见 [03-ioctl-controller.md](../research/03-ioctl-controller.md))的关系:同一技术路线,但目标是**重写一个可维护的实现**,不是修补。
 
 ## 2. 路线选择:为什么是 ioctl 层
 
@@ -46,7 +46,7 @@ libnvfair/
 │   │   ├── ioctl_hook.c        # ioctl 符号导出与分发(薄层,只做识别与路由)
 │   │   └── hook_util.c         # dlsym/RTLD_NEXT 解析、真实符号缓存
 │   ├── rm/
-│   │   ├── rm_defs.h           # NV_ESC_*、NVOS32_*、NV2080_* 定义(唯一来源:include open-gpu-kernel-modules 官方头,见 docs/04)
+│   │   ├── rm_defs.h           # NV_ESC_*、NVOS32_*、NV2080_* 定义(唯一来源:include open-gpu-kernel-modules 官方头,见 research/04)
 │   │   ├── rm_alloc.c          # 显存分配/释放类 ioctl 的解析与判定
 │   │   └── rm_query.c          # 反查驱动统计(FB_GET_INFO / GET_PIDS / GET_PID_INFO)
 │   ├── core/
@@ -132,7 +132,7 @@ libnvfair/
 
 ### M3 健壮性与可观测
 - [ ] close hook 清理、崩溃进程账本回收(owner 心跳)
-- [ ] 审计模式(只记录不拦截)与直通降级开关;审计日志的结构化 dump 代码从 ogkm 头生成(借用 cuda_ioctl_sniffer 的 pstruct 方法论,见 docs/05)
+- [ ] 审计模式(只记录不拦截)与直通降级开关;审计日志的结构化 dump 代码从 ogkm 头生成(借用 cuda_ioctl_sniffer 的 pstruct 方法论,见 [05-cuda-ioctl-sniffer.md](../research/05-cuda-ioctl-sniffer.md))
 - [ ] 用 sniff.so 抓取 PyTorch 等真实负载的 ioctl 分配路径样本,沉淀为拦截清单的测试用例
 - [ ] 驱动版本兼容矩阵测试(选定 2-3 个目标驱动版本)
 
