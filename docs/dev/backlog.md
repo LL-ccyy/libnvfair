@@ -19,7 +19,8 @@
 
 ### PBI-001 ioctl hook 直通骨架 — **已完成**
 薄层拦截,非 NVIDIA 请求原样透传。工程基建(CMake/构建/子模块)包含在内。
-- AC1:`LD_PRELOAD=libnvfair.so nvidia-smi` 输出与不加载完全一致,exit=0
+- AC1:`LD_PRELOAD=libnvfair.so nvidia-smi` 与不加载行为一致(exit code 相同 +
+  显存数值行相同;GPU 温度/功耗/性能档为动态噪声,不纳入比对)
 - AC2:非 `NV_IOCTL_MAGIC` 请求 100% 直通(代码路径评审确认)
 - AC3:`ioctl` 符号 `GLOBAL DEFAULT` 导出;RTLD_NEXT 解析一次并缓存
 - AC4:ogkm 570.211.01 子模块就位,CMake 探测缺失时给出明确修复指引
@@ -27,6 +28,8 @@
   符号同型坑(ioctl 带 `__THROW` = noexcept,声明必须完全同型否则符号退化为 LOCAL)已记录在
   src/ioctl_hook.cpp 头注释。工程注意:CMakeLists 中 googletest FetchContent 与 nvfair 目标
   已接好,但 test/ 尚未建立(nvfair_test 目标随 PBI-002 单测引入)。
+- 背景阅读:magic 直通判定 / GLOBAL DEFAULT / RTLD_NEXT 缓存详解 →
+  [hook-background.md](hook-background.md)
 
 ### PBI-002 日志与配置解析 — **待开发**
 - AC1:`NVFAIR_LOG_LEVEL` 0-4 生效,默认级别不干扰应用 stdout/stderr 语义

@@ -49,7 +49,7 @@ libnvfair/
 │   │   ├── rm_defs.h           # NV_ESC_*、NVOS32_*、NV2080_* 定义(唯一来源:include open-gpu-kernel-modules 官方头,见 research/04)
 │   │   ├── rm_alloc.c          # 显存分配/释放类 ioctl 的解析与判定
 │   │   └── rm_query.c          # 反查驱动统计(FB_GET_INFO / GET_PIDS / GET_PID_INFO)
-│   ├── core/
+│   ├── lib/
 │   │   ├── ledger.c            # 显存记账(共享内存账本 + 配额判定)
 │   │   ├── ledger.h            # 账本结构定义(shared region 布局,带版本号)
 │   │   ├── config.c            # 配置加载(环境变量 + 配置文件 + 热更新)
@@ -61,6 +61,10 @@ libnvfair/
 ├── test/                       # ctest;fake RM backend + 并发/竞态测试
 └── CMakeLists.txt
 ```
+
+> 命名注记:`core/` 更名 `lib/`——本项目的"核心"就是 hook 机制本身,
+> core 层名易与 hook 层混淆;lib/ 语义为"被 hook 层调用的库逻辑"(记账/配置/上下文)。
+> 目录随代码量演进:单文件阶段允许 src/ 平铺,>4 文件再分子目录。
 
 ### 4.2 数据流
 

@@ -14,7 +14,7 @@ NVIDIA 自 R515 起开源的内核驱动部分(GSP 固件仍为闭源 blob)。�
 
 | 路径 | 内容 | 对本项目的用途 |
 |---|---|---|
-| `kernel-open/common/inc/nv-ioctl.h` + `nv-ioctl-numbers.h` | ioctl request 编码宏(magic 'N'、nr、size 组合) | hook 分发时识别 NVIDIA 请求的依据 |
+| `kernel-open/common/inc/nv-ioctl.h` + `nv-ioctl-numbers.h` | ioctl request 编码宏(magic 'F'=0x46、nr、size 组合;'F' 已经 sniff.cc 对 libcuda 真实流量实证) | hook 分发时识别 NVIDIA 请求的依据 |
 | `src/nvidia/arch/nvalloc/unix/include/nv_escape.h` | **27 个 `NV_ESC_*` escape 码全集**(RM_ALLOC_MEMORY=0x27、RM_FREE=0x29、RM_CONTROL=0x2A、RM_ALLOC=0x2B、RM_VID_HEAP_CONTROL=0x4A、RM_MAP_MEMORY=0x4E…) | libnvfair 拦截清单的唯一事实源,直接 include 而非手抄 |
 | `src/common/sdk/nvidia/inc/nvos.h` | `NVOS32_FUNCTION_*`(ALLOC_SIZE=2、FREE=3、ALLOC_SIZE_RANGE=14…)及 `NVOS32_PARAMETERS` 结构 | 解析 VID_HEAP_CONTROL 参数体、区分分配/释放、读取 size 与 flags |
 | `src/common/sdk/nvidia/inc/ctrl/ctrl2080/` | `NV2080_CTRL_*` 控制命令族(fb/bus/gpu/…,ctrl2080fb.h 里有 FB_GET_INFO,ctrl2080gpu.h 里有 GET_PIDS/GET_PID_INFO) | 后台校准线程反查驱动统计所需的结构与命令码 |

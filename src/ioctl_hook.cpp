@@ -3,6 +3,8 @@
 #include <sys/ioctl.h>
 #include <stdio.h>
 
+#include "nv-ioctl-numbers.h"
+
 using real_ioctl_t = int(int, unsigned long, ...);
 
 real_ioctl_t* real_ioctl = nullptr;
@@ -17,6 +19,10 @@ int ioctl(int fd, unsigned long request, ...) noexcept{
     va_start(args, request);
     void* argp = va_arg(args, void*);
     va_end(args);
+
+    if(((request >> 8) & 0xFF) != NV_IOCTL_MAGIC){
+        return real_ioctl(fd, request, argp);
+    }
+
     return real_ioctl(fd, request, argp);
 }
-
