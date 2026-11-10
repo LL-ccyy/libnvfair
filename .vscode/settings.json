@@ -1,0 +1,6 @@
+{
+    "clangd.path": "${workspaceFolder}/.vscode/clangd-wrapper.sh",
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceFolder}/build"
+    ]
+}

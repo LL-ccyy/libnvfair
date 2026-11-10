@@ -1,0 +1,3 @@
+[submodule "third_party/open-gpu-kernel-modules"]
+	path = third_party/open-gpu-kernel-modules
+	url = https://github.com/NVIDIA/open-gpu-kernel-modules
