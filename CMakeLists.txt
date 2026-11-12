@@ -15,8 +15,15 @@ if(NOT EXISTS ${OGKM_DIR}/src/nvidia/arch/nvalloc/unix/include/nv_escape.h)
         "  git submodule update --init")
 endif()
 
+
+add_library(nvfair_core STATIC
+    src/util/log/log.cpp
+    src/lib/config/config.cpp)
+target_include_directories(nvfair_core PUBLIC src)
+
 add_library(nvfair SHARED src/ioctl_hook.cpp)
 target_compile_options(nvfair PRIVATE -fvisibility=hidden -Wall -Wextra)
+target_link_libraries(nvfair PRIVATE nvfair_core)
 target_include_directories(nvfair SYSTEM PRIVATE
     ${OGKM_DIR}/src/common/sdk/nvidia/inc
     ${OGKM_DIR}/src/nvidia/arch/nvalloc/unix/include
@@ -26,3 +33,10 @@ include(FetchContent)
 FetchContent_Declare(googletest
     URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz)
 FetchContent_MakeAvailable(googletest)
+
+add_executable(nvfair_test
+    test/config_test.cpp
+    test/log_test.cpp)
+target_link_libraries(nvfair_test PRIVATE nvfair_core gtest_main)
+add_test(NAME config COMMAND nvfair_test --gtest_filter=ParseMemoryFromEnv.*)
+add_test(NAME log COMMAND nvfair_test --gtest_filter=LogEnvTest.*)

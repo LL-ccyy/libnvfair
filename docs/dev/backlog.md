@@ -26,19 +26,36 @@
 - AC4:ogkm 570.211.01 子模块就位,CMake 探测缺失时给出明确修复指引
 - 状态:2026-11-10 复验通过(重建后 readelf 确认 GLOBAL DEFAULT,preload nvidia-smi 直通 OK);
   符号同型坑(ioctl 带 `__THROW` = noexcept,声明必须完全同型否则符号退化为 LOCAL)已记录在
-  src/ioctl_hook.cpp 头注释。工程注意:CMakeLists 中 googletest FetchContent 与 nvfair 目标
-  已接好,但 test/ 尚未建立(nvfair_test 目标随 PBI-002 单测引入)。
+  src/ioctl_hook.cpp 头注释。
 - 背景阅读:magic 直通判定 / GLOBAL DEFAULT / RTLD_NEXT 缓存详解 →
   [hook-background.md](hook-background.md)
 
-### PBI-002 日志与配置解析 — **待开发**
-- AC1:`NVFAIR_LOG_LEVEL` 0-4 生效,默认级别不干扰应用 stdout/stderr 语义
-- AC2:`NVFAIR_MEMORY_LIMIT`/`_LIMIT_<n>` 解析 `1g/512m/数字字节` 语法,非法值降级不限额 + 告警日志
+### PBI-002 日志与配置解析 — **已完成**
+- AC1:`NVFAIR_LOG_LEVEL` 0-4 生效,默认级别不干扰应用 stdout/stderr 语义(单测覆盖:
+  合法 0-4、非法值拒绝并保持原级别、未设置不重置;已知行为 `' 3'` 前导空白被
+  strtol 容忍,测试锁定现状)
+- AC2:`NVFAIR_MEMORY_LIMIT`/`_LIMIT_<n>` 值语法,锚定 **K8s resource.Quantity 双进制后缀语义的整数子集**:
+  - 非负十进制整数 + 单位后缀,**后缀是否带 `i` 决定进制**:
+    - 不带 `i`(十进制 SI,1000 系):`k/K`=10^3、`m/M`=10^6、`g/G`=10^9,`1g`=1,000,000,000 字节;
+    - 带 `i`(二进制 IEC,1024 系):`ki/kiB`、`mi/miB`、`gi/giB` = 2^10/2^20/2^30,`1gi`=1,073,741,824 字节;
+      `i` 必须跟在单位字母后,`1i` 非法;
+    - 单位字母后可选 `b/B` 尾缀(`1mb`=10^6、`1mib`=2^20);单独 `1b`/`1B` 非法(与无单位歧义);
+  - **无单位后缀 = 字节**(`1073741824` ≡ `1gi`,≈1.07g);
+  - 与 K8s 的差异(显式约定,不是疏漏):大小写不敏感;`m` 按兆(M-mega)解析而非 K8s 的毫(milli)——毫字节的配额无意义;
+  - 不支持 K8s 的小数(`0.5Gi`)、`n/u` 前缀与 `T/P/E` 大单位,有真实需求再扩;
+  - **对账提示**:nvidia-smi/CUDA 语境全是二进制,配 `24GiB` 应写 `24gi`;
+    写 `24g` 得到 24e9 字节 ≈ 22.35GiB,差 ~5%;从 HAMi 配置迁移同理(`512m` 在 HAMi 是 2^29,此处是 512e6);
+  - 非法即降级:空串、非数字开头、未知符号(`1t`/`1x`)、中间空白(`1 g`)、
+    小数、溢出(≥2^64)一律按"该进程不限额"处理并记 WARN,绝不 exit/abort(BR3);
+  - `0` = 显式不限额,记 INFO 与"未设置(静默,不限额)"区分;
+  - 容忍首尾空白;
+  - `_LIMIT_<n>` 存在即覆盖全局 `_LIMIT`,两者解析相互独立、同一解析函数
+    (单卡覆盖语义,P3-5.3 才有消费者,002 只负责解析正确)。
 - AC3:解析函数独立可单测(不依赖 GPU、不依赖 preload)
 - AC4:日志函数绝不致命退出(禁 exit/abort,静态断言或评审约束)
 - 依赖:PBI-001
 
-### PBI-003 rm_defs.h 协议定义层 — **待开发**
+### PBI-003 rm_defs.h 协议定义层 — **待开发(下一个)**
 从 ogkm 官方头引出 libnvfair 使用的最稳定子集;版本差异唯一收纳处(偏移表模式)。
 - AC1:NVOS32(VID_HEAP_CONTROL)/NVOS54(RM_FREE)/NVOS33(RM_CONTROL)/NVOS64(RM_ALLOC)定义齐备
 - AC2:编译期 `static_assert(sizeof/offsetof)` 锚定 570.211.01 布局,漂移即编译失败

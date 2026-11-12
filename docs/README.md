@@ -22,8 +22,11 @@
 |---|---|
 | [design.md](dev/design.md) | libnvfair 设计:路线选择(ioctl 层)、设计原则(对 03 技术债的正面回答)、模块划分、记账策略、配置、里程碑 M1-M4 |
 | [backlog.md](dev/backlog.md) | 产品 Backlog:基础需求 BR1-6、PBI 与验收标准(P0 MVP / P1 交付质量 / P2 二期 / P3 方向池) |
+| [hook-background.md](dev/hook-background.md) | Hook 机制背景:MAGIC 直通判定 / GLOBAL DEFAULT / RTLD_NEXT |
+| [log-background.md](dev/log-background.md) | 日志系统背景:输出方式与原子性 / 内存序 relaxed 选型 |
 
 ## 当前状态速览
 
-- PBI-001(ioctl hook 直通骨架)已完成并复验;下一个是 PBI-002(日志与配置解析)
-- 工程现状:`src/ioctl_hook.cpp` 直通 hook + LD_PRELOAD 冒烟通过(nvidia-smi 161 条 ioctl 日志)
+- PBI-001(ioctl hook 直通骨架)、PBI-002(日志与配置解析,含单测)已完成;下一个是 PBI-003(rm_defs.h 协议定义层)
+- 工程现状:`src/ioctl_hook.cpp` 直通 hook + LD_PRELOAD 冒烟通过;`src/util/log` + `src/lib/config`
+  完成并纳入 `nvfair_test`(ctest:config / log 两组 16 用例)
