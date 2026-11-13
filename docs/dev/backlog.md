@@ -55,15 +55,15 @@
 - AC4:日志函数绝不致命退出(禁 exit/abort,静态断言或评审约束)
 - 依赖:PBI-001
 
-### PBI-003 rm_defs.h 协议定义层 — **待开发(下一个)**
+### PBI-003 rm_defs.h 协议定义层 — **已完成**
 从 ogkm 官方头引出 libnvfair 使用的最稳定子集;版本差异唯一收纳处(偏移表模式)。
-- AC1:NVOS00(RM_FREE)/NVOS54(RM_CONTROL)/NVOS64+NVOS21(RM_ALLOC,双布局)/NVOS32(VID_HEAP_CONTROL)定义齐备。配对以 ogkm escape.c 各 case 为准
-- AC2:编译期 `static_assert(sizeof/offsetof)` 锚定 570.211.01 布局,漂移即编译失败
-- AC3:NVOS64 的 status 偏移按 **dataSize 分支**(同内核 escape.c 判据:`size==sizeof(NVOS64)` vs `sizeof(NVOS21)`),不依赖驱动版本字符串
-- AC4:hook 分发层(rm/ 以外)不出现任何字段偏移字面量(代码评审确认)
+- AC1:NVOS00(RM_FREE)/NVOS54(RM_CONTROL)/NVOS64+NVOS21(RM_ALLOC,双布局)/NVOS32(VID_HEAP_CONTROL)定义齐备。配对以 ogkm escape.c 各 case 为准 ✅
+- AC2:编译期 `static_assert(sizeof/offsetof)` 锚定 570.211.01 布局,漂移即编译失败 ✅(22 条,数字经 ogkm 真头/抄本双探针互证)
+- AC3:NVOS64 的 status 偏移按 **dataSize 分支**(同内核 escape.c 判据:`size==sizeof(NVOS64)` vs `sizeof(NVOS21)`),不依赖驱动版本字符串 ✅(`rm_alloc_status_offset`,未知 size 返 -1 拒识)
+- AC4:hook 分发层(rm/ 以外)不出现任何字段偏移字面量(代码评审确认)✅(编号宏亦已收编,CMake 零 OGKM include)
 - 依赖:PBI-001
 
-### PBI-004 分配预检 + OOM 伪造 — **待开发(核心)**
+### PBI-004 分配预检 + OOM 伪造 — **待开发(下一个,核心)**
 - AC1:fake backend 单测:配额内 → 放行真实 ioctl 并记账;超限 → 返回 `NV_ERR_NO_MEMORY`,真实 ioctl 零调用
 - AC2:伪造状态码写入位置按 PBI-003 偏移表确定(NVOS64 双布局均覆盖)
 - AC3:热路径无 malloc/锁竞争临界区在微秒级(评审 + 基准)

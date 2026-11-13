@@ -27,6 +27,7 @@
 
 ## 当前状态速览
 
-- PBI-001(ioctl hook 直通骨架)、PBI-002(日志与配置解析,含单测)已完成;下一个是 PBI-003(rm_defs.h 协议定义层)
-- 工程现状:`src/ioctl_hook.cpp` 直通 hook + LD_PRELOAD 冒烟通过;`src/util/log` + `src/lib/config`
-  完成并纳入 `nvfair_test`(ctest:config / log 两组 16 用例)
+- PBI-001(ioctl hook 直通骨架)、PBI-002(日志与配置解析,含单测)、PBI-003(rm_defs.h 协议定义层,22 条布局锚定)已完成;下一个是 PBI-004(分配预检 + OOM 伪造,核心)
+- 工程现状:`src/hook/ioctl_hook.cpp` 直通 hook + LD_PRELOAD 冒烟通过;`src/rm/rm_defs.h`
+  五结构体 + 编号收编(零 OGKM include);`src/util/log` + `src/lib/config`
+  完成并纳入 `nvfair_test`(ctest:config / log / rm_defs 三组)
