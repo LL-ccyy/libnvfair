@@ -53,6 +53,31 @@ Linux ioctl 的第二个参数 `request` 不是任意命令号,按 `_IOC` 宏打
 
 参数结构大于 _IOC size 字段(14-bit)上限的 ioctl 走 `NV_ESC_IOCTL_XFER_CMD`(nv-ioctl.h 的 nv_ioctl_xfer_t):真实 cmd/size/ptr 打包传递,内核侧二次拷贝(nv.c:2371-2399)。它的外层 request 同样携带 'F',magic 判定不受影响;但 **PBI-003 分发层若要覆盖超大参数命令,须识别并解包这一层**。
 
+### 1.5 RM 协议三件套:编号表、格式表、登记簿(PBI-003 抄写依据)
+
+ogkm 里三个文件各司其职,**配对关系只认登记簿**:
+
+| 文件 | 角色 | 内容 |
+|---|---|---|
+| nv_escape.h(unix/include) | 信封编号表 | 仅 `#define NV_ESC_RM_* 0xNN`,无结构体 |
+| nvos.h(sdk/nvidia/inc) | 信纸格式表 | 30 个 `NVOSxx_PARAMETERS` 结构体定义,无"谁用哪个"索引 |
+| escape.c(unix/src) | **登记簿(权威)** | 每个 `case NV_ESC_RM_*` 首行声明该编号拆哪个结构体 |
+
+escape.c 的 case 首行即配对证据(570.211.01):
+
+| 编号 | case 位置 | 拆包结构体 |
+|---|---|---|
+| NV_ESC_RM_FREE(0x29) | escape.c L424-426 | **NVOS00**(而非 NVOS54!) |
+| NV_ESC_RM_CONTROL(0x2A) | escape.c L708-710 | **NVOS54** |
+| NV_ESC_RM_ALLOC(0x2B) | escape.c L373-377 | NVOS21 / NVOS64 双布局,`dataSize` 区分 |
+| NV_ESC_RM_VID_HEAP_CONTROL(0x4A) | escape.c L447-449 | **NVOS32** |
+
+推论(写 rm_defs.h 时遵守):
+- **"抄哪些字段"看使用者**:我们要改/读的字段(status、size 等)决定抄的结构体子集;`dataSize` 校验类结构(如 NVOS32 的 union)必须全量拷贝,否则 sizeof 不合内核期待、调用被拒(escape.c L453)。
+- **编号≠结构体名**,不能从数字猜(0x29→NVOS00 就是反例);nvos.h 里 `/* function OSxx */` 注释只是辅助线索,不全。
+- nvos.h 的结构体定义同时服务多个使用者,新旧布局并存(21/64)是 NVIDIA 历史包袱,双布局判据以 escape.c 内核自己的写法为准。
+- IDE 对子模块跳转通常失效(compile_commands 不含 third_party);用 grep 查证,或按文件+行号人工导航。
+
 ## 2. GLOBAL DEFAULT:AC3 在验收什么
 
 ### 2.1 ELF 符号表的两个维度

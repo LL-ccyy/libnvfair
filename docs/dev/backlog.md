@@ -57,7 +57,7 @@
 
 ### PBI-003 rm_defs.h 协议定义层 — **待开发(下一个)**
 从 ogkm 官方头引出 libnvfair 使用的最稳定子集;版本差异唯一收纳处(偏移表模式)。
-- AC1:NVOS32(VID_HEAP_CONTROL)/NVOS54(RM_FREE)/NVOS33(RM_CONTROL)/NVOS64(RM_ALLOC)定义齐备
+- AC1:NVOS00(RM_FREE)/NVOS54(RM_CONTROL)/NVOS64+NVOS21(RM_ALLOC,双布局)/NVOS32(VID_HEAP_CONTROL)定义齐备。配对以 ogkm escape.c 各 case 为准
 - AC2:编译期 `static_assert(sizeof/offsetof)` 锚定 570.211.01 布局,漂移即编译失败
 - AC3:NVOS64 的 status 偏移按 **dataSize 分支**(同内核 escape.c 判据:`size==sizeof(NVOS64)` vs `sizeof(NVOS21)`),不依赖驱动版本字符串
 - AC4:hook 分发层(rm/ 以外)不出现任何字段偏移字面量(代码评审确认)

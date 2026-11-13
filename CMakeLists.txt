@@ -21,13 +21,9 @@ add_library(nvfair_core STATIC
     src/lib/config/config.cpp)
 target_include_directories(nvfair_core PUBLIC src)
 
-add_library(nvfair SHARED src/ioctl_hook.cpp)
+add_library(nvfair SHARED src/hook/ioctl_hook.cpp)
 target_compile_options(nvfair PRIVATE -fvisibility=hidden -Wall -Wextra)
 target_link_libraries(nvfair PRIVATE nvfair_core)
-target_include_directories(nvfair SYSTEM PRIVATE
-    ${OGKM_DIR}/src/common/sdk/nvidia/inc
-    ${OGKM_DIR}/src/nvidia/arch/nvalloc/unix/include
-    ${OGKM_DIR}/kernel-open/common/inc)
 
 include(FetchContent)
 FetchContent_Declare(googletest
@@ -36,7 +32,9 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(nvfair_test
     test/config_test.cpp
-    test/log_test.cpp)
+    test/log_test.cpp
+    test/rm_defs_test.cpp)
 target_link_libraries(nvfair_test PRIVATE nvfair_core gtest_main)
 add_test(NAME config COMMAND nvfair_test --gtest_filter=ParseMemoryFromEnv.*)
 add_test(NAME log COMMAND nvfair_test --gtest_filter=LogEnvTest.*)
+add_test(NAME rm_defs COMMAND nvfair_test --gtest_filter=RmDefs.* )

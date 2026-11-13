@@ -3,7 +3,7 @@
 #include <sys/ioctl.h>
 #include <stdio.h>
 
-#include "nv-ioctl-numbers.h"
+#include "rm/rm_defs.h"
 
 using real_ioctl_t = int(int, unsigned long, ...);
 

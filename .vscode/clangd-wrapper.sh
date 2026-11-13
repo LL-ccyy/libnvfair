@@ -1,5 +1,13 @@
-#!/bin/bash
-# clangd wrapper:Trae server 把自带旧 libstdc++(GLIBCXX 仅到 3.4.25)注入
-# LD_LIBRARY_PATH,导致系统 clangd 14(需 3.4.29+)启动即崩。
-# 剥掉污染路径后用系统运行时库启动真实 clangd。
-exec env -u LD_LIBRARY_PATH /usr/bin/clangd "$@"
+#!/usr/bin/env bash
+# clangd-wrapper.sh — clangd 启动包装。
+#
+# 职责:仅清理 Trae 终端注入的坏 LD_LIBRARY_PATH(旧 libstdc++ 缺
+# GLIBCXX_3.4.29,会让 clangd 秒崩)。所有参数原样透传。
+# --compile-commands-dir 由 .vscode/settings.json 的 clangd.arguments 提供,
+# 此处不得再传(clangd 限制该选项最多出现一次,重复即启动失败)。
+#
+# 子模块(ogkm)的跳转支持:build/compile_commands.json 已合并
+# compile_commands_ogkm.json 的合成条目(escape.c 等);CMake 重新 configure
+# 后需重跑合并,见该文件内注释。
+
+exec env -u LD_LIBRARY_PATH clangd "$@"
